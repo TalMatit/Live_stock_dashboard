@@ -1,0 +1,1 @@
+<bound method TickerBase.get_info of yfinance.Ticker object <AAPL>>
