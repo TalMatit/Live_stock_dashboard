@@ -19,7 +19,7 @@ def History(ticker_object, interval):
     interface.
     """
     history = ticker_object.history(period='max', interval=interval)
-    dates_datetime = pd.DataFrame(history.index)
+    dates_datetime = history.index
     dates_raw = pd.DataFrame(history.index.to_list())
     dates_raw[0] = dates_raw[0].astype(str) 
 
@@ -30,6 +30,11 @@ def History(ticker_object, interval):
 
     return(dates, dates_datetime, history)
 
+def clean_timestamp(dates):
+    cleanDate = ()
+    for date in dates:
+        cleanDate.append(str(date.replace(tzinfo=None)))
+    return cleanDate
 
 if __name__ == "__main__":
     info , ticker = Fetch("AAPL")
