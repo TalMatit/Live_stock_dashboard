@@ -18,6 +18,15 @@ if 'show_data' not in st.session_state:
     st.session_state.show_data = False
 if 'period' not in st.session_state:
     st.session_state.period = ''
+if 'interval' not in st.session_state:
+    st.session_state.interval = '1mo'
+if 'period_data' not in st.session_state:
+    st.session_state.period_data = st.session_state.history
+if 'clean_period' not in st.session_state:
+    st.session_state.clean_period = ()
+if 'selected_period' not in st.session_state:
+    st.session_state.selected_period = st.session_state.clean_period
+
 
 INTERVALS = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d', '1wk', '1mo', '3mo']
 
@@ -82,21 +91,34 @@ if st.session_state.show_data:
         st.text(f"Sector:  {st.session_state.ticker_info.get("sectorDisp")}")
         st.text(f"Coumpany CEO: {st.session_state.ticker_info.get("companyOfficers")[0]["name"]}")
 
-    # Getting trading data on the stock for the past month
-        st.session_state.dates, st.session_state.period, st.session_state.history, = Get_history(ticker=st.session_state.ticker_object, interval='1mo')
-    # Generating Candlestick chart to be shown on the webpage
-    candlestick = go.Figure(data=[go.Candlestick(x=st.session_state.history.index,
-                                                open=st.session_state.history["Open"],
-                                                close=st.session_state.history["Close"],
-                                                high=st.session_state.history["High"],
-                                                low=st.session_state.history["Low"])])
-    
-    #Cleaning up the Timestamp period
-    st.session_state.period = functions.clean_timestamp(st.session_state.period)
+    # Adding an option for the user to choose his desired candlestick interval
+    st.session_state.interval = st.select_slider(label="Choose desired interval", options=INTERVALS, value=INTERVALS[-1])
 
+    # Getting trading data on the stock for the past month
+    st.session_state.dates, st.session_state.period, st.session_state.history, = Get_history(_ticker=st.session_state.ticker_object, interval=st.session_state.interval)
+    
+    #Cleaning up the Timestamp period, and making sure that the period selection slider stays with desired selection.
+    if st.session_state.clean_period == ():
+        st.session_state.clean_period = functions.clean_timestamp(st.session_state.period)
+        st.session_state.selected_period = st.session_state.clean_period
+        
     # Creating slider for the user to choose viewing period
-    requested_period = st.session_state.select = st.select_slider(label="Choose desired period", options=st.session_state.period,
-                                                value=(st.session_state.period[0], st.session_state.period[-1]))
+    st.session_state.selected_period = st.select_slider(label="Choose desired period", options=st.session_state.clean_period,
+                                                value=(st.session_state.selected_period[0], st.session_state.selected_period[-1]))
+    
+    # Creating the stock trading data frame with the desired parameters
+    st.session_state.period_data = st.session_state.history[st.session_state.selected_period[0]:st.session_state.selected_period[1]]
+
+    st.write(f"Requested period: {st.session_state.selected_period}")
+    st.write(f"Requested interval {st.session_state.interval}")
+    
+    
+    # Generating Candlestick chart to be shown on the webpage
+    candlestick = go.Figure(data=[go.Candlestick(x=st.session_state.period_data.index,
+                                                open=st.session_state.period_data["Open"],
+                                                close=st.session_state.period_data["Close"],
+                                                high=st.session_state.period_data["High"],
+                                                low=st.session_state.period_data["Low"])])
     
     st.plotly_chart(candlestick)
     

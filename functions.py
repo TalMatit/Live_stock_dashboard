@@ -31,7 +31,7 @@ def History(ticker_object, interval):
     return(dates, dates_datetime, history)
 
 def clean_timestamp(dates):
-    cleanDate = ()
+    cleanDate = []
     for date in dates:
         cleanDate.append(str(date.replace(tzinfo=None)))
     return cleanDate
